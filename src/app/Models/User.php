@@ -30,5 +30,18 @@ class User extends Authenticatable
         ];
     }
 
-    
+    /**
+     * Um usuário tem UM perfil.
+     */
+    public function profile(){
+        return $this->hasOne(Profile::class);
+    }
+
+    /**
+     * Um usuário tem MUITOS posts.
+     */
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
 }
