@@ -1,27 +1,72 @@
-FROM php:8.4-cli-trixie
+ARG PHP_VERSION=8.4
+ARG COMPOSER_VERSION=2
 
-COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
-
-RUN apt-get update && apt-get install -y --no-install-recommends\
-    libxml2-dev \
-    libcurl4-openssl-dev\
-    libzip-dev \
-    libonig-dev \
-    && docker-php-ext-install\
-    pdo_mysql \
-    xml \
-    curl \
-    zip \
-    bcmath \
-    mbstring \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# -----------------------------------------------------------------------------
+# Stage 1: Install PHP dependencies
+# -----------------------------------------------------------------------------
+FROM composer:${COMPOSER_VERSION} AS vendor
 
 WORKDIR /app
 
-COPY src/ .
+COPY composer.json composer.lock ./
 
-RUN composer install --no-dev --optimize-autoloader
+RUN --mount=type=cache,target=/tmp/composer-cache \
+    COMPOSER_CACHE_DIR=/tmp/composer-cache \
+    composer install \
+        --no-dev \
+        --no-interaction \
+        --no-scripts \
+        --prefer-dist \
+        --no-progress
+
+COPY . .
+
+# Adicione --no-scripts aqui também
+RUN composer dump-autoload --classmap-authoritative --no-dev --no-scripts
+
+# -----------------------------------------------------------------------------
+# Stage 2: FrankenPHP runtime
+# -----------------------------------------------------------------------------
+FROM dunglas/frankenphp:1-php${PHP_VERSION}-alpine AS runtime
+
+ENV APP_ENV=production \
+    APP_DEBUG=false \
+    SERVER_NAME=":8000" \
+    PHP_INI_MEMORY_LIMIT=256M \
+    COMPOSER_ALLOW_SUPERUSER=1
+
+RUN apk add --no-cache \
+        bash \
+        mysql-client \
+        tini \
+ && install-php-extensions \
+        pdo_mysql \
+        intl \
+        zip \
+        bcmath \
+        opcache \
+        pcntl \
+        gd \
+        redis
+
+WORKDIR /app
+
+COPY --from=vendor /app/vendor ./vendor
+COPY --from=vendor /app        ./
+
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint
+COPY docker/php.ini       /usr/local/etc/php/conf.d/zz-app.ini
+
+RUN chmod +x /usr/local/bin/entrypoint \
+ && mkdir -p storage/framework/{cache,sessions,testing,views} storage/logs bootstrap/cache \
+ && chown -R www-data:www-data storage bootstrap/cache \
+ && chmod -R ug+rwX storage bootstrap/cache
 
 EXPOSE 8000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:8000/up >/dev/null 2>&1 || exit 1
+
+ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/entrypoint"]
+
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]

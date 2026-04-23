@@ -1,5 +1,6 @@
 services:
   mysql:
+    container_name: mysql
     image: mysql:latest
     ports:
       - "3306:3306"
@@ -10,13 +11,19 @@ services:
       MYSQL_PASSWORD: laravel
     volumes:
       - mysql_data:/var/lib/mysql
-  php:
-    depends_on:
-      - mysql
+  app:
     build: .
+    image: projeto-final/backend
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mysql
     ports:
       - "8000:8000"
     volumes:
-      - ./src:/app
+      - app_storage:/app/storage
+    depends_on:
+      - mysql
 volumes:
-  mysql_data:
+  mysql_data: {}
+  app_storage: {}
