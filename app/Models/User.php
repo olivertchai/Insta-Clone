@@ -2,25 +2,38 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; // Certifique-se que esta linha existe
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Os atributos que podem ser preenchidos em massa.
+     */
+    protected $fillable = [
+        'name',
+        'username', // Adicionado
+        'email',
+        'password',
+        'bio',        // Adicionado
+        'avatar_url', // Adicionado
+    ];
+
+    /**
+     * Os atributos que devem ser escondidos em arrays (JSON).
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Os atributos que devem ser convertidos (cast).
      */
     protected function casts(): array
     {
@@ -29,7 +42,6 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
     /**
      * Um usuário tem UM perfil.
      */

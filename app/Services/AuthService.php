@@ -25,8 +25,8 @@ class AuthService
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return [
-            'user'  => $user,
-            'token' => $token,
+            'user' => $user,
+            'access_token' => $token, // <-- Mudado de 'token' para 'access_token'
         ];
     }
 
@@ -52,7 +52,7 @@ class AuthService
 
         return [
             'user'  => $user,
-            'token' => $token,
+            'access_token' => $token, // <-- Mudado de 'token' para 'access_token'
         ];
     }
 
