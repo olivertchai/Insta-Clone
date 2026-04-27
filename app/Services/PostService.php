@@ -17,13 +17,19 @@ class PostService
 
     public function createPost(User $user, array $data, UploadedFile $file)
     {
+        // 1. Cria um nome único para o arquivo
         $filename = time() . '_' . $file->getClientOriginalName();
-        $path = $file->storeAs('posts', $filename, 'public');
-        $imageUrl = '/storage/posts/' . $filename;  // ← MUDE PARA ISSO
+        
+        // 2. SALVA O ARQUIVO FISICAMENTE na pasta storage/app/public/posts
+        $file->storeAs('posts', $filename, 'public');
 
+        // 3. Monta a URL pública que o frontend vai usar para exibir a imagem
+        $imageUrl = asset('storage/posts/' . $filename);
+        
+        // 4. Salva o registro no banco de dados
         return $user->posts()->create([
             'description' => $data['description'] ?? null,
-            'image_path'  => $imageUrl,
+            'imageUrl'  => $imageUrl,
         ]);
     }
 

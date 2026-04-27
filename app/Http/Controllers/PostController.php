@@ -53,4 +53,17 @@ class PostController extends Controller
 
         return response()->json($post);
     }
+
+    // GET /api/users/{id}/posts
+    // Traz todos os posts de um usuário específico para a tela de Perfil
+    public function userPosts($id)
+    {
+        // Busca os posts onde o user_id seja igual ao ID recebido
+        $posts = \App\Models\Post::with('user')
+            ->where('user_id', $id)
+            ->latest()
+            ->paginate(12); // Traz de 12 em 12 para a grade do perfil
+
+        return response()->json($posts);
+    }
 }

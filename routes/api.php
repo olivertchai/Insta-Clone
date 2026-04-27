@@ -2,9 +2,13 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// Importação limpa de todos os Controllers
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\FollowController;
 
 // --------------------------------------------------------
 // Rotas de Autenticação (Task 2)
@@ -23,63 +27,65 @@ Route::prefix('auth')->group(function () {
 });
 
 // --------------------------------------------------------
-// Rotas de Usuário / Perfil (Task 3)
-// --------------------------------------------------------
-Route::prefix('users')->group(function () {
-    
-    // Rotas protegidas
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/search', [UserController::class, 'search']);
-        Route::get('/suggestions', [UserController::class, 'suggestions']);
-        Route::put('/me', [UserController::class, 'update']);
-        Route::post('/me/avatar', [UserController::class, 'uploadAvatar']);
-    });
-
-    // A rota curinga com parâmetro dinâmico ({username}) deve sempre ficar por último
-    // para não capturar acidentalmente as rotas como "search" ou "me"
-    Route::get('/{username}', [UserController::class, 'show'])->middleware('auth:sanctum');
-});
-
-// --------------------------------------------------------
-// Feed e Posts (Task 4) e Outras Rotas
+// TODAS AS ROTAS PROTEGIDAS PELO SISTEMA (Tasks 3, 4, etc)
 // --------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
-    
+
+    // Retorna o próprio usuário logado
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 
-    // Feed e Posts
+    // --------------------------------------------------------
+    // Usuários, Perfil e Follow (Task 3)
+    // --------------------------------------------------------
+    Route::prefix('users')->group(function () {
+        
+        // 1º Rotas Estáticas (Buscas e Configurações)
+        Route::get('/search', [UserController::class, 'search']);
+        Route::get('/suggestions', [UserController::class, 'suggestions']);
+        Route::put('/me', [UserController::class, 'update']);
+        Route::post('/me/avatar', [UserController::class, 'uploadAvatar']);
+
+        // 2º Rotas de Follow
+        Route::post('/{id}/follow', [FollowController::class, 'follow']);
+        Route::delete('/{id}/follow', [FollowController::class, 'unfollow']);
+        Route::get('/{id}/followers', [FollowController::class, 'followers']);
+        Route::get('/{id}/following', [FollowController::class, 'following']);
+        Route::get('/{id}/is-following', [FollowController::class, 'checkFollow']);
+
+        // 3º Rota Dinâmica Curinga (Sempre por último nesta seção)
+        Route::get('/{username}', [UserController::class, 'show']);
+    });
+
+    // --------------------------------------------------------
+    // Feed e Posts (Task 4)
+    // --------------------------------------------------------
     Route::get('/feed', [PostController::class, 'index']);
-    Route::post('/posts', [PostController::class, 'store']);
     
-    // Curtidas
-    Route::post('/posts/{id}/like', [PostController::class, 'toggleLike']);
+    Route::prefix('posts')->group(function () {
+        Route::post('/', [PostController::class, 'store']);
+        Route::get('/{id}', [PostController::class, 'show']);
+        Route::post('/{id}/like', [PostController::class, 'toggleLike']);
 
+        // Comentários ligados a um Post específico
+        Route::get('/{postId}/comments', [CommentController::class, 'index']);
+        Route::post('/{postId}/comments', [CommentController::class, 'store']);
+    });
 
-    // Rotas de Comentários
-    Route::get('/posts/{postId}/comments', [\App\Http\Controllers\CommentController::class, 'index']);
-    Route::post('/posts/{postId}/comments', [\App\Http\Controllers\CommentController::class, 'store']);
-    Route::put('/comments/{comment}', [\App\Http\Controllers\CommentController::class, 'update']);
-    Route::delete('/comments/{comment}', [\App\Http\Controllers\CommentController::class, 'destroy']);
-    
-    // Rota para buscar um único post
-    Route::get('/posts/{id}', [\App\Http\Controllers\PostController::class, 'show']);
+    // --------------------------------------------------------
+    // Ações diretas nos Comentários
+    // --------------------------------------------------------
+    Route::put('/comments/{comment}', [CommentController::class, 'update']);
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
 
-    // Rotas de Follow
-    Route::post('/users/{id}/follow', [\App\Http\Controllers\FollowController::class, 'follow']);
-    Route::delete('/users/{id}/follow', [\App\Http\Controllers\FollowController::class, 'unfollow']);
-    Route::get('/users/{id}/followers', [\App\Http\Controllers\FollowController::class, 'followers']);
-    Route::get('/users/{id}/following', [\App\Http\Controllers\FollowController::class, 'following']);
-    Route::get('/users/{id}/is-following', [\App\Http\Controllers\FollowController::class, 'checkFollow']);
-    
 });
 
 // --------------------------------------------------------
 // ARQUIVOS PÚBLICOS (Não usar Sanctum aqui)
 // --------------------------------------------------------
 
-// Rota infalível para carregar imagens do Avatar ignorando os atalhos do Docker
+// Rota para carregar imagens do Avatar
 Route::get('/avatars/{filename}', function ($filename) {
     $path = storage_path('app/public/avatars/' . $filename);
     
@@ -99,4 +105,26 @@ Route::get('/images/{filename}', function ($filename) {
     }
     
     return response()->file($path);
+});
+
+Route::prefix('users')->group(function () {
+        
+    // 1º Rotas Estáticas (Buscas e Configurações)
+    Route::get('/search', [UserController::class, 'search']);
+    Route::get('/suggestions', [UserController::class, 'suggestions']);
+    Route::put('/me', [UserController::class, 'update']);
+    Route::post('/me/avatar', [UserController::class, 'uploadAvatar']);
+
+    // 2º Rotas de Follow
+    Route::post('/{id}/follow', [FollowController::class, 'follow']);
+    Route::delete('/{id}/follow', [FollowController::class, 'unfollow']);
+    Route::get('/{id}/followers', [FollowController::class, 'followers']);
+    Route::get('/{id}/following', [FollowController::class, 'following']);
+    Route::get('/{id}/is-following', [FollowController::class, 'checkFollow']);
+
+    // 3º Rota dos Posts do Usuário (NOVA)
+    Route::get('/{id}/posts', [PostController::class, 'userPosts']);
+
+    // 4º Rota Dinâmica Curinga (Sempre por último nesta seção)
+    Route::get('/{username}', [UserController::class, 'show']);
 });

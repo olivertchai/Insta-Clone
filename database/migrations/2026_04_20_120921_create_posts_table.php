@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             // foreignId cria a relação: 1 post pertence a 1 usuário
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); 
-            $table->string('image_path');
+            $table->string('imageUrl');
             $table->text('description')->nullable();
             $table->timestamps();
         });
