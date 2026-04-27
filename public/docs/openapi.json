@@ -1,0 +1,575 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "InstaClone Backend API",
+    "description": "Documentacao dos endpoints do backend InstaClone.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "Servidor local"
+    }
+  ],
+  "tags": [
+    { "name": "Auth" },
+    { "name": "Users" },
+    { "name": "Follow" },
+    { "name": "Feed" },
+    { "name": "Posts" },
+    { "name": "Comments" },
+    { "name": "Files" }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Cadastrar novo usuario",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Usuario registrado" },
+          "422": { "description": "Erro de validacao" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login e emissao de token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login realizado com sucesso" },
+          "401": { "description": "Credenciais invalidas" },
+          "422": { "description": "Erro de validacao" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout do usuario autenticado",
+        "security": [{ "sanctumAuth": [] }],
+        "responses": {
+          "200": { "description": "Logout realizado" },
+          "401": { "description": "Nao autenticado" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Retorna usuario autenticado",
+        "security": [{ "sanctumAuth": [] }],
+        "responses": {
+          "200": { "description": "Dados do usuario atual" },
+          "401": { "description": "Nao autenticado" }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Renova token de acesso",
+        "security": [{ "sanctumAuth": [] }],
+        "responses": {
+          "200": { "description": "Novo token gerado" },
+          "401": { "description": "Nao autenticado" }
+        }
+      }
+    },
+    "/user": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Retorna o usuario logado",
+        "security": [{ "sanctumAuth": [] }],
+        "responses": {
+          "200": { "description": "Usuario atual" },
+          "401": { "description": "Nao autenticado" }
+        }
+      }
+    },
+    "/users/search": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Buscar usuarios por termo",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Termo da busca"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Lista de usuarios" }
+        }
+      }
+    },
+    "/users/suggestions": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Sugestoes de perfis",
+        "security": [{ "sanctumAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de sugestoes" },
+          "401": { "description": "Nao autenticado" }
+        }
+      }
+    },
+    "/users/me": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Atualizar perfil do usuario logado",
+        "security": [{ "sanctumAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProfileRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Perfil atualizado" },
+          "401": { "description": "Nao autenticado" },
+          "422": { "description": "Erro de validacao" }
+        }
+      }
+    },
+    "/users/me/avatar": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Upload de avatar",
+        "security": [{ "sanctumAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["avatar"],
+                "properties": {
+                  "avatar": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Avatar atualizado" },
+          "401": { "description": "Nao autenticado" },
+          "422": { "description": "Erro de validacao" }
+        }
+      }
+    },
+    "/users/{username}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Perfil publico por username",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Perfil encontrado" },
+          "404": { "description": "Usuario nao encontrado" }
+        }
+      }
+    },
+    "/users/{id}/posts": {
+      "get": {
+        "tags": ["Posts"],
+        "summary": "Lista posts de um usuario",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Lista paginada de posts" }
+        }
+      }
+    },
+    "/users/{id}/follow": {
+      "post": {
+        "tags": ["Follow"],
+        "summary": "Seguir usuario",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Usuario seguido" },
+          "401": { "description": "Nao autenticado" },
+          "404": { "description": "Usuario nao encontrado" }
+        }
+      },
+      "delete": {
+        "tags": ["Follow"],
+        "summary": "Deixar de seguir usuario",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Usuario desseguido" },
+          "401": { "description": "Nao autenticado" },
+          "404": { "description": "Usuario nao encontrado" }
+        }
+      }
+    },
+    "/users/{id}/followers": {
+      "get": {
+        "tags": ["Follow"],
+        "summary": "Lista seguidores",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Seguidores paginados" },
+          "401": { "description": "Nao autenticado" }
+        }
+      }
+    },
+    "/users/{id}/following": {
+      "get": {
+        "tags": ["Follow"],
+        "summary": "Lista perfis seguidos",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Seguindo paginado" },
+          "401": { "description": "Nao autenticado" }
+        }
+      }
+    },
+    "/users/{id}/is-following": {
+      "get": {
+        "tags": ["Follow"],
+        "summary": "Verifica se segue um perfil",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Resultado booleano" },
+          "401": { "description": "Nao autenticado" }
+        }
+      }
+    },
+    "/feed": {
+      "get": {
+        "tags": ["Feed"],
+        "summary": "Feed do usuario autenticado",
+        "security": [{ "sanctumAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de posts do feed" },
+          "401": { "description": "Nao autenticado" }
+        }
+      }
+    },
+    "/posts": {
+      "post": {
+        "tags": ["Posts"],
+        "summary": "Criar post com imagem",
+        "security": [{ "sanctumAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["image"],
+                "properties": {
+                  "image": { "type": "string", "format": "binary" },
+                  "description": { "type": "string", "maxLength": 1000 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Post criado" },
+          "401": { "description": "Nao autenticado" },
+          "422": { "description": "Erro de validacao" }
+        }
+      }
+    },
+    "/posts/{id}": {
+      "get": {
+        "tags": ["Posts"],
+        "summary": "Detalhes de um post",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Post encontrado" },
+          "401": { "description": "Nao autenticado" },
+          "404": { "description": "Post nao encontrado" }
+        }
+      }
+    },
+    "/posts/{id}/like": {
+      "post": {
+        "tags": ["Posts"],
+        "summary": "Curtir ou descurtir post",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Status da curtida atualizado" },
+          "401": { "description": "Nao autenticado" },
+          "404": { "description": "Post nao encontrado" }
+        }
+      }
+    },
+    "/posts/{postId}/comments": {
+      "get": {
+        "tags": ["Comments"],
+        "summary": "Listar comentarios de um post",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Comentarios paginados" },
+          "401": { "description": "Nao autenticado" },
+          "404": { "description": "Post nao encontrado" }
+        }
+      },
+      "post": {
+        "tags": ["Comments"],
+        "summary": "Adicionar comentario em um post",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCommentRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Comentario criado" },
+          "401": { "description": "Nao autenticado" },
+          "404": { "description": "Post nao encontrado" },
+          "422": { "description": "Erro de validacao" }
+        }
+      }
+    },
+    "/comments/{comment}": {
+      "put": {
+        "tags": ["Comments"],
+        "summary": "Atualizar comentario",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "comment",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateCommentRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Comentario atualizado" },
+          "401": { "description": "Nao autenticado" },
+          "403": { "description": "Sem permissao" },
+          "404": { "description": "Comentario nao encontrado" },
+          "422": { "description": "Erro de validacao" }
+        }
+      },
+      "delete": {
+        "tags": ["Comments"],
+        "summary": "Remover comentario",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "comment",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Comentario removido" },
+          "401": { "description": "Nao autenticado" },
+          "403": { "description": "Sem permissao" },
+          "404": { "description": "Comentario nao encontrado" }
+        }
+      }
+    },
+    "/avatars/{filename}": {
+      "get": {
+        "tags": ["Files"],
+        "summary": "Recuperar arquivo de avatar",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Arquivo do avatar" },
+          "404": { "description": "Imagem nao encontrada" }
+        }
+      }
+    },
+    "/images/{filename}": {
+      "get": {
+        "tags": ["Files"],
+        "summary": "Recuperar arquivo de post",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Arquivo da imagem" },
+          "404": { "description": "Imagem nao encontrada" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sanctumAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Token"
+      }
+    },
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["name", "username", "email", "password"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 255 },
+          "username": { "type": "string", "maxLength": 255 },
+          "email": { "type": "string", "format": "email", "maxLength": 255 },
+          "password": { "type": "string", "minLength": 8 }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" }
+        }
+      },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 255 },
+          "username": { "type": "string", "maxLength": 30 },
+          "bio": { "type": "string", "maxLength": 500, "nullable": true }
+        }
+      },
+      "CreateCommentRequest": {
+        "type": "object",
+        "required": ["content"],
+        "properties": {
+          "content": { "type": "string", "maxLength": 1000 }
+        }
+      },
+      "UpdateCommentRequest": {
+        "type": "object",
+        "required": ["content"],
+        "properties": {
+          "content": { "type": "string", "maxLength": 1000 }
+        }
+      }
+    }
+  }
+}
