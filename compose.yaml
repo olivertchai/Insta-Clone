@@ -17,10 +17,18 @@ services:
     env_file:
       - .env
     environment:
+      APP_NAME: InstaClone
       DB_HOST: mysql
+      DB_PORT: 3306
+      DB_CONNECTION: mysql
+      DB_DATABASE: laravel
+      DB_USERNAME: laravel
+      DB_PASSWORD: laravel
+      APP_ENV: local
     ports:
       - "8000:8000"
     volumes:
+      - ./:/app
       - app_storage:/app/storage
     depends_on:
       - mysql
