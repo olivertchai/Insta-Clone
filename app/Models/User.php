@@ -54,6 +54,30 @@ class User extends Authenticatable
      */
     public function posts()
     {
-        return $this->hasMany(Post::class);
+        // Retorna os posts do usuário, já ordenados do mais novo pro mais velho
+        return $this->hasMany(Post::class)->latest();
+    }
+
+    // Os posts que este usuário curtiu
+    public function likedPosts()
+    {
+        return $this->belongsToMany(Post::class, 'likes')->withTimestamps();
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    // Pessoas que este usuário está seguindo
+    public function following()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id')->withTimestamps();
+    }
+
+    // Pessoas que seguem este usuário (Seguidores)
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id')->withTimestamps();
     }
 }
