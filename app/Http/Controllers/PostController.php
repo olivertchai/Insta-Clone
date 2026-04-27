@@ -2,75 +2,55 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PostService;
 use Illuminate\Http\Request;
-use App\Repositories\Contracts\PostRepositoryInterface;
-use Illuminate\Http\JsonResponse;
 
 class PostController extends Controller
 {
-    protected $postRepository;
-
-    public function __construct(PostRepositoryInterface $postRepository)
+    public function __construct(private PostService $postService)
     {
-        $this->postRepository = $postRepository;
     }
 
-   /**
-     * Display a listing of the resource.
-     */
+    // GET /api/feed
     public function index()
     {
-        // O Controller não sabe que é Eloquent ou MySQL, ele só chama o método!
-        $posts = $this->postRepository->getAllPaginated();
-
-        return response()->json($data = ['data' => $posts], 200);
+        $posts = $this->postService->getFeed();
+        return response()->json($posts);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
+    // POST /api/posts
     public function store(Request $request)
     {
+        $request->validate([
+            'image'       => 'required|image|mimes:jpeg,png,jpg,webp|max:5120', // até 5MB
+            'description' => 'nullable|string|max:1000',
+        ]);
 
+        $post = $this->postService->createPost(
+            $request->user(),
+            $request->only('description'),
+            $request->file('image')
+        );
+
+        // Retorna o post recém-criado já com os dados do usuário atrelados
+        $post->load('user');
+
+        return response()->json($post, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    // POST /api/posts/{id}/like
+    public function toggleLike(Request $request, $id)
     {
-        //
+        $result = $this->postService->toggleLike($request->user(), $id);
+        return response()->json($result);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    // Mostrar um post específico
+    public function show($id)
     {
-        //
-    }
+        // Busca o post e já traz as informações do autor do post
+        $post = \App\Models\Post::with('user:id,name,username')->findOrFail($id);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json($post);
     }
 }
