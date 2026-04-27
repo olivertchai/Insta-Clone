@@ -20,7 +20,7 @@ class PostFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'image_path' => 'https://picsum.photos/seed/' . fake()->uuid() . '/600/600',
+            'imageUrl' => 'https://picsum.photos/seed/' . fake()->uuid() . '/600/600',
             'description' => fake()->optional(0.7)->sentence(10),
         ];
     }

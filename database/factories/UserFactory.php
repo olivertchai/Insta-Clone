@@ -25,14 +25,13 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
-        $faker = \Faker\Factory::create();
         return [
-            'name' => $faker->name(),
-            'username' => $faker->unique()->userName(),
-            'email' => $faker->unique()->safeEmail(),
+            'name' => fake()->name(),
+            'username' => fake()->unique()->userName(),
+            'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'password' => bcrypt('password'), // a senha padrão será 'password'
+            'remember_token' => \Illuminate\Support\Str::random(10),
         ];
     }
 
