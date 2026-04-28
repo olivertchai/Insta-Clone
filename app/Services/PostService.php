@@ -23,12 +23,13 @@ class PostService
         // 2. SALVA O ARQUIVO FISICAMENTE na pasta storage/app/public/posts
         $file->storeAs('posts', $filename, 'public');
 
-        // 3. Monta a URL pública que o frontend vai usar para exibir a imagem
-        $imageUrl = asset('storage/posts/' . $filename);
+        // 3. Monta uma URL baseada no host/porta da API atual
+        // para evitar links quebrados quando APP_URL não tem a porta correta.
+        $imageUrl = url('/api/images/' . rawurlencode($filename));
         
         // 4. Salva o registro no banco de dados
         return $user->posts()->create([
-            'description' => $data['description'] ?? null,
+            'description' => $data['caption'] ?? $data['description'] ?? null,
             'imageUrl'  => $imageUrl,
         ]);
     }
