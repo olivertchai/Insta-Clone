@@ -54,7 +54,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/following', [FollowController::class, 'following']);
         Route::get('/{id}/is-following', [FollowController::class, 'checkFollow']);
 
-        // 3º Rota Dinâmica Curinga (Sempre por último nesta seção)
+        // 3º Rota dos Posts do Usuário
+        Route::get('/{id}/posts', [PostController::class, 'userPosts']);
+
+        // 4º Rota Dinâmica Curinga (Sempre por último nesta seção)
         Route::get('/{username}', [UserController::class, 'show']);
     });
 
@@ -105,26 +108,4 @@ Route::get('/images/{filename}', function ($filename) {
     }
     
     return response()->file($path);
-});
-
-Route::prefix('users')->group(function () {
-        
-    // 1º Rotas Estáticas (Buscas e Configurações)
-    Route::get('/search', [UserController::class, 'search']);
-    Route::get('/suggestions', [UserController::class, 'suggestions']);
-    Route::put('/me', [UserController::class, 'update']);
-    Route::post('/me/avatar', [UserController::class, 'uploadAvatar']);
-
-    // 2º Rotas de Follow
-    Route::post('/{id}/follow', [FollowController::class, 'follow']);
-    Route::delete('/{id}/follow', [FollowController::class, 'unfollow']);
-    Route::get('/{id}/followers', [FollowController::class, 'followers']);
-    Route::get('/{id}/following', [FollowController::class, 'following']);
-    Route::get('/{id}/is-following', [FollowController::class, 'checkFollow']);
-
-    // 3º Rota dos Posts do Usuário (NOVA)
-    Route::get('/{id}/posts', [PostController::class, 'userPosts']);
-
-    // 4º Rota Dinâmica Curinga (Sempre por último nesta seção)
-    Route::get('/{username}', [UserController::class, 'show']);
 });

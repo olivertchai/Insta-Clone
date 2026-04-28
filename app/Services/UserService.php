@@ -50,12 +50,13 @@ class UserService
             ->get();
     }
 
-    public function getSuggestions(User $user)
+    public function getSuggestions(User $user, int $perPage = 20)
     {
+        $perPage = max(1, min($perPage, 50));
+
         // Retorna perfis aleatórios sugeridos, excluindo o próprio usuário logado
         return User::where('id', '!=', $user->id)
             ->inRandomOrder()
-            ->limit(5)
-            ->get();
+            ->paginate($perPage);
     }
 }

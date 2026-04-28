@@ -56,7 +56,8 @@ class UserController extends Controller
     // GET /api/users/suggestions
     public function suggestions(Request $request)
     {
-        $users = $this->userService->getSuggestions($request->user());
+        $perPage = (int) $request->query('per_page', 20);
+        $users = $this->userService->getSuggestions($request->user(), $perPage);
         return response()->json($users);
     }
 }

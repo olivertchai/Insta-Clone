@@ -23,12 +23,13 @@ class PostController extends Controller
     {
         $request->validate([
             'image'       => 'required|image|mimes:jpeg,png,jpg,webp|max:5120', // até 5MB
-            'description' => 'nullable|string|max:1000',
+            'caption'     => 'nullable|string|max:2200',
+            'description' => 'nullable|string|max:2200',
         ]);
 
         $post = $this->postService->createPost(
             $request->user(),
-            $request->only('description'),
+            $request->only('caption', 'description'),
             $request->file('image')
         );
 
