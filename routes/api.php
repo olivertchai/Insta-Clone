@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // 2º Rotas de Follow
         Route::post('/{id}/follow', [FollowController::class, 'follow']);
         Route::delete('/{id}/follow', [FollowController::class, 'unfollow']);
+        Route::delete('/{id}/unfollow', [FollowController::class, 'unfollow']);
         Route::get('/{id}/followers', [FollowController::class, 'followers']);
         Route::get('/{id}/following', [FollowController::class, 'following']);
         Route::get('/{id}/is-following', [FollowController::class, 'checkFollow']);

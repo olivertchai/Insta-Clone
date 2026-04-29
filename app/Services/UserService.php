@@ -22,10 +22,12 @@ class UserService
 
     public function uploadAvatar(User $user, UploadedFile $file)
     {
+        $currentAvatar = $user->getRawOriginal('avatar_url');
+
         // Se o usuário já tiver um avatar (e não for um link HTTP externo de teste), deletamos o antigo do disco
-        if ($user->avatar_url && !str_starts_with($user->avatar_url, 'http')) {
+        if ($currentAvatar && !str_starts_with($currentAvatar, 'http')) {
             // Ajustamos o caminho de deleção para funcionar com a nova URL
-            $oldPath = str_replace('/storage/', '', $user->avatar_url);
+            $oldPath = str_replace('/storage/', '', $currentAvatar);
             Storage::disk('public')->delete($oldPath);
         }
 

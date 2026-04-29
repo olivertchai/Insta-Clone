@@ -17,11 +17,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'username', // Adicionado
+        'username',
         'email',
+        'bio',
+        'avatar_url',
         'password',
-        'bio',        // Adicionado
-        'avatar_url', // Adicionado
     ];
 
     /**
@@ -42,13 +42,23 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    /**
-     * Um usuário tem UM perfil.
-     */
-    public function profile(){
-        return $this->hasOne(Profile::class);
-    }
 
+    /**
+     * Sempre expõe avatar_url como URL absoluta na API.
+     */
+    public function getAvatarUrlAttribute($value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+            return $value;
+        }
+
+        return url($value);
+    }
+    
     /**
      * Um usuário tem MUITOS posts.
      */
@@ -58,24 +68,33 @@ class User extends Authenticatable
         return $this->hasMany(Post::class)->latest();
     }
 
-    // Os posts que este usuário curtiu
+    /**
+     * Um usuário tem MUITOS posts curtidos.
+     */
     public function likedPosts()
     {
         return $this->belongsToMany(Post::class, 'likes')->withTimestamps();
     }
 
+    /**
+     * Um usuário tem MUITOS comentários.
+     */
     public function comments()
     {
         return $this->hasMany(Comment::class);
     }
 
-    // Pessoas que este usuário está seguindo
+    /**
+     * Um usuário tem MUITOS seguidores.
+     */
     public function following()
     {
         return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id')->withTimestamps();
     }
 
-    // Pessoas que seguem este usuário (Seguidores)
+    /**
+     * Um usuário tem MUITOS seguidos.
+     */
     public function followers()
     {
         return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id')->withTimestamps();
