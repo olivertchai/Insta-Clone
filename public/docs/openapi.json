@@ -3,7 +3,7 @@
   "info": {
     "title": "InstaClone Backend API",
     "description": "Documentacao dos endpoints do backend InstaClone.",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "servers": [
     {
@@ -106,6 +106,7 @@
       "get": {
         "tags": ["Users"],
         "summary": "Buscar usuarios por termo",
+        "security": [{ "sanctumAuth": [] }],
         "parameters": [
           {
             "name": "q",
@@ -116,7 +117,8 @@
           }
         ],
         "responses": {
-          "200": { "description": "Lista de usuarios" }
+          "200": { "description": "Lista de usuarios" },
+          "401": { "description": "Nao autenticado" }
         }
       }
     },
@@ -125,6 +127,15 @@
         "tags": ["Users"],
         "summary": "Sugestoes de perfis",
         "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+            "description": "Quantidade de sugestoes por pagina"
+          }
+        ],
         "responses": {
           "200": { "description": "Lista de sugestoes" },
           "401": { "description": "Nao autenticado" }
@@ -184,6 +195,7 @@
       "get": {
         "tags": ["Users"],
         "summary": "Perfil publico por username",
+        "security": [{ "sanctumAuth": [] }],
         "parameters": [
           {
             "name": "username",
@@ -194,6 +206,7 @@
         ],
         "responses": {
           "200": { "description": "Perfil encontrado" },
+          "401": { "description": "Nao autenticado" },
           "404": { "description": "Usuario nao encontrado" }
         }
       }
@@ -202,6 +215,7 @@
       "get": {
         "tags": ["Posts"],
         "summary": "Lista posts de um usuario",
+        "security": [{ "sanctumAuth": [] }],
         "parameters": [
           {
             "name": "id",
@@ -211,7 +225,8 @@
           }
         ],
         "responses": {
-          "200": { "description": "Lista paginada de posts" }
+          "200": { "description": "Lista paginada de posts" },
+          "401": { "description": "Nao autenticado" }
         }
       }
     },
@@ -237,6 +252,26 @@
       "delete": {
         "tags": ["Follow"],
         "summary": "Deixar de seguir usuario",
+        "security": [{ "sanctumAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Usuario desseguido" },
+          "401": { "description": "Nao autenticado" },
+          "404": { "description": "Usuario nao encontrado" }
+        }
+      }
+    },
+    "/users/{id}/unfollow": {
+      "delete": {
+        "tags": ["Follow"],
+        "summary": "Alias para deixar de seguir usuario",
         "security": [{ "sanctumAuth": [] }],
         "parameters": [
           {
@@ -335,7 +370,8 @@
                 "required": ["image"],
                 "properties": {
                   "image": { "type": "string", "format": "binary" },
-                  "description": { "type": "string", "maxLength": 1000 }
+                  "caption": { "type": "string", "maxLength": 2200 },
+                  "description": { "type": "string", "maxLength": 2200 }
                 }
               }
             }
