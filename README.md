@@ -50,7 +50,7 @@ Sistema robusto de upload de imagens para Avatares e Posts, utilizando o **Larav
 
 5.  **Criar link para as imagens:**
     ```bash
-    docker compose exec app php artisan storage:link
+    docker compose exec app php artisan storage:link --force
     ```
 
 A API estará disponível em `http://localhost:8000`.
