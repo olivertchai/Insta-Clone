@@ -45,7 +45,7 @@ Sistema robusto de upload de imagens para Avatares e Posts, utilizando o **Larav
 4.  **Configurar o banco e chaves:**
     ```bash
     php artisan key:generate
-    php artisan migrate --seed
+    php artisan migrate:fresh --seed
     ```
 
 5.  **Criar link para as imagens:**
