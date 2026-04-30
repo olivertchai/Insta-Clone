@@ -39,13 +39,13 @@ Sistema robusto de upload de imagens para Avatares e Posts, utilizando o **Larav
 
 3.  **Instalar dependências (via container):**
     ```bash
-    docker compose exec app composer install
+    composer install
     ```
 
 4.  **Configurar o banco e chaves:**
     ```bash
-    docker compose exec app php artisan key:generate
-    docker compose exec app php artisan migrate --seed
+    php artisan key:generate
+    php artisan migrate --seed
     ```
 
 5.  **Criar link para as imagens:**
